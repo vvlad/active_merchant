@@ -1,5 +1,7 @@
 = About This Fork
 
+In-depth tutorial how to use: http://www.naivehack.com/2010/11/24/active-merchant-paypal-recurring-payment/
+
 This fork of ActiveMerchant provides a Paypal Recurring Gateway to handle Paypal's recurring payments. Both Paypal Express and Direct Payment can be used to create recurring profiles.
 
 Additionally, Paypal Express can handle one time orders at the same time as creating recurring profiles. Common usage for this is to charge a 1 time fee right away, then creating a subscription / recurring profile.
