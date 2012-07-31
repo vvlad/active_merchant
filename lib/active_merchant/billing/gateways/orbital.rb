@@ -41,12 +41,12 @@ module ActiveMerchant #:nodoc:
       
       SUCCESS, APPROVED = '0', '00'
       
-      class_attribute :primary_test_url, :secondary_test_url, :primary_live_url, :secondary_live_url
+      class_attribute :secondary_test_url, :secondary_live_url
       
-      self.primary_test_url = "https://orbitalvar1.paymentech.net/authorize"
+      self.test_url = "https://orbitalvar1.paymentech.net/authorize"
       self.secondary_test_url = "https://orbitalvar2.paymentech.net/authorize"
       
-      self.primary_live_url = "https://orbital1.paymentech.net/authorize"
+      self.live_url = "https://orbital1.paymentech.net/authorize"
       self.secondary_live_url = "https://orbital2.paymentech.net/authorize"
       
       self.supported_countries = ["US", "CA"]
@@ -148,11 +148,20 @@ module ActiveMerchant #:nodoc:
         xml.tag! :SDMerchantEmail, soft_desc.merchant_email
       end
 
-      def add_address(xml, creditcard, options)      
+      def add_address(xml, creditcard, options)
         if address = options[:billing_address] || options[:address]
-          add_avs_details(xml, address)
+          avs_supported = AVS_SUPPORTED_COUNTRIES.include?(address[:country].to_s)
+
+          if avs_supported
+            xml.tag! :AVSzip, address[:zip]
+            xml.tag! :AVSaddress1, address[:address1]
+            xml.tag! :AVSaddress2, address[:address2]
+            xml.tag! :AVScity, address[:city]
+            xml.tag! :AVSstate, address[:state]
+            xml.tag! :AVSphoneNum, address[:phone] ? address[:phone].scan(/\d/).join.to_s : nil
+          end
           xml.tag! :AVSname, creditcard.name
-          xml.tag! :AVScountryCode, address[:country]
+          xml.tag! :AVScountryCode, avs_supported ? address[:country] : ''
         end
       end
 
@@ -174,17 +183,6 @@ module ActiveMerchant #:nodoc:
         xml.tag! :CurrencyExponent, '2' # Will need updating to support currencies such as the Yen.
       end
       
-      def add_avs_details(xml, address)
-        return unless AVS_SUPPORTED_COUNTRIES.include?(address[:country].to_s)
-
-        xml.tag! :AVSzip, address[:zip]
-        xml.tag! :AVSaddress1, address[:address1]
-        xml.tag! :AVSaddress2, address[:address2]
-        xml.tag! :AVScity, address[:city]
-        xml.tag! :AVSstate, address[:state]
-        xml.tag! :AVSphoneNum, address[:phone] ? address[:phone].scan(/\d/).join.to_s : nil
-      end
-
 
       def parse(body)
         response = {}
@@ -225,7 +223,7 @@ module ActiveMerchant #:nodoc:
       
       def remote_url
         unless $!.class == ActiveMerchant::ConnectionError
-          self.test? ? self.primary_test_url : self.primary_live_url
+          self.test? ? self.test_url : self.live_url
         else
           self.test? ? self.secondary_test_url : self.secondary_live_url
         end
