@@ -97,7 +97,7 @@ module ActiveMerchant #:nodoc:
               xml.tag! 'n2:CancelURL', options[:cancel_return_url]
               xml.tag! 'n2:IPAddress', options[:ip] unless options[:ip].blank?
               # IMPORTANT: If you want to use Invoice ID, it has to be unique!
-              # xml.tag! 'n2:InvoiceID', 'InvoiceID' + Time.now.to_i.to_s
+              xml.tag! 'n2:InvoiceID', options[:invoice_id] || 'InvoiceID' + Time.now.to_i.to_s
               
               xml.tag! 'n2:AllowNote', '0'
               xml.tag! 'n2:LocaleCode', options[:locale] unless options[:locale].blank?
